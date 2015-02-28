@@ -1,28 +1,115 @@
-== README
+dev.twitter.com
+sign in 
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+scroll down, click on "manage your app"
 
-Things you may want to cover:
+Fill in application details, including a callback URL (can be anything)
 
-* Ruby version
+Create your app! 
 
-* System dependencies
+Click on permissions and change to read, write, and access DMs 
 
-* Configuration
+Click on keys and access tokens 
 
-* Database creation
+Create access tokens 
 
-* Database initialization
+Create a new app (rails new whateverrrr)
 
-* How to run the test suite
+Go to your gem file and add: 
+gem 'randumb'
+gem 'twitter'
+gem 'awesome_print'
+gem 'figaro' 
 
-* Services (job queues, cache servers, search engines, etc.)
+bundle install 
 
-* Deployment instructions
+figaro install 
+- generates an application.yml file and appends .gitignore
 
-* ...
+Go to the new application.yml file and paste in all 4 keys from twitter
+
+consumer_key: "Your access code here"
+consumer_secret: "Your access code here"
+access_token: "Your access code here"
+access_secret: "Your access code here"
+
+create a new file in the config/initializers folder named twitter.rb
+In it, add the configuration to begin interacting with twitter
+CLIENT = Twitter::REST::Client.new do |config|
+  config.consumer_key        = ENV['consumer_key']
+  config.consumer_secret     = ENV['consumer_secret']
+  config.access_token        = ENV['access_token']
+  config.access_token_secret = ENV['access_secret']
+end
 
 
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+Test your connection in the rails console by entering 
+
+ENV['consumer_key']
+You should get your unique value in response 
+
+Now we're going to create a model that will contain most of our code and methods 
+
+rails g model bot
+
+rake db:migrate 
+
+In the newly created bot file, we're going to add some methods that access data from Twitter's API in various ways 
+
+  def self.search_words words
+      CLIENT.search(words, lang: "en").first.text
+  end
+
+  Bot.search_words "entrepreneur"
+
+  This should return the most recent tweet using the word 
+
+Populate seeds file 
+
+First create a model to hold all of the messages that you will be sending 
+rails g model Response message:string tweet_id:string 
+
+go to db/seeds.rb 
+
+Response.create(message: "Seed tweets") 
+etc. etc. etc. 
+
+Create a user model 
+rails g model User name:string tweet_id:string
+
+rake db:migrate
+rake db:seed 
+
+Create a method to respond to tweets 
+  def self.respond name
+    "@" + name + " " + Response.order_by_rand.first.message
+  end 
+
+    def self.find_user number, words
+
+    # find tweets
+    CLIENT.search(words, lang: "en").take(number).each { |t|
+      # record twitter user and tweet num.
+      
+      User.create(name: t.user.screen_name, tweet_id: t.id.to_s)
+
+      # send message
+      CLIENT.update(Bot.respond(t.user.screen_name), in_reply_to_status_id: t.id)
+    }
+
+  end
+
+  After these methods are in, should be able to run 
+
+
+
+
+
+
+
+
+
+
+
+
+

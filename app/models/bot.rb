@@ -4,13 +4,14 @@ class Bot < ActiveRecord::Base
       CLIENT.search(words, lang: "en").first.text
   end
 
-  def self.loop words
-    CLIENT.search(words, lang: "en").take(5).each { |t|
-      # byebug
-      tweets.push t.text
-    } 
-    return tweets
-  end
+
+  # def self.loop words
+  #   CLIENT.search(words, lang: "en").take(5).each { |t|
+  #     # byebug
+  #     tweets.push t.text
+  #   } 
+  #   return tweets
+  # end
 
   # code to find insomniac tweets and respond to them
   def self.find_user number, words

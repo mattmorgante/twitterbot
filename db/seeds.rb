@@ -12,3 +12,7 @@ Response.create(message: "Meditation can help with #insomnia! http://nyti.ms/1LC
 Response.create(message: "Meditation can help with #insomnia! http://nyti.ms/1LCs8hF Here's an app I love: saagara.com")
 Response.create(message: "Meditation can help with #insomnia! http://nyti.ms/1LCs8hF Here's an app I love: omvana.com")
 Response.create(message: "Meditation can help with #insomnia! http://nyti.ms/1LCs8hF Here's an app I love: buddhify.com")
+
+Response.create(message: "This is a great tweet! :)") 
+Response.create(message: "This is a mediocore tweet : | ")
+Response.create(message: "This tweet is downright disgraceful :( ")

@@ -1,109 +1,172 @@
-dev.twitter.com
-sign in 
+Twitter API: How to make search, send, and reply to tweets using Ruby on Rails.
+View with pictures at http://mattmorgante.com/?p=505 
 
-scroll down, click on "manage your app"
+1. Twitter Account Setup
+ 
+First, go to dev.twitter.com and either sign in to your account or set
+up a new one. Once signed in, scroll down to "Manage your apps", and
+you'll be redirected to apps.twitter.com. Click on "Create New App"
+and fill out the relevant information: Create appIn the permissions
+tab of your newly created application, the access is set to "Read
+only". This will enable us to retrieve tweets with certain hashtags,
+but not respond to them, so update the permission to "Read and Write":
 
-Fill in application details, including a callback URL (can be anything)
+PermissionsNavigate over to "Keys and Access Tokens", where you can
+view your account's API authorizations ("Consumer Key" and "Consumer
+Secret"), and initialize Access Tokens for this specific application
+("Access Token" and "Access Token Secret"). Save these four unique
+codes for later.
 
-Create your app! 
+2. Rails Setup
+ 
+In your terminal, create a new application. I'm going to call mine
+hashtagresponder because it's going to find tweets with certain
+hashtags and respond to them. Specifically, seeing as it's 2:30AM on
+the East coast right now, I'm going to look for folks who are tweeting
+with #insomnia and recommend them some of my favorite meditation apps
+so that maybe they can catch some shut eye.
 
-Click on permissions and change to read, write, and access DMs 
+rails new hashtagresponder In your brand new rails application add
+some gems that will make this whole thing possible:
 
-Click on keys and access tokens 
+gem 'twitter' gem 'figaro' gem 'randumb' Then run
 
-Create access tokens 
+bundle install and
 
-Create a new app (rails new whateverrrr)
+figaro install Running figaro install creates a new file named
+application.yml that can hold all of our secret access keys, then
+appends our .gitignore to ensure that nothing private is uploaded to
+Github.
 
-Go to your gem file and add: 
-gem 'randumb'
-gem 'twitter'
-gem 'awesome_print'
-gem 'figaro' 
+3. API Connection
+ 
 
-bundle install 
+Head over to that newly created file in config/application.yml and add
+in the four Twitter access keys like so:
 
-figaro install 
-- generates an application.yml file and appends .gitignore
-
-Go to the new application.yml file and paste in all 4 keys from twitter
-
-consumer_key: "Your access code here"
-consumer_secret: "Your access code here"
-access_token: "Your access code here"
-access_secret: "Your access code here"
-
-create a new file in the config/initializers folder named twitter.rb
-In it, add the configuration to begin interacting with twitter
-CLIENT = Twitter::REST::Client.new do |config|
-  config.consumer_key        = ENV['consumer_key']
-  config.consumer_secret     = ENV['consumer_secret']
-  config.access_token        = ENV['access_token']
-  config.access_token_secret = ENV['access_secret']
-end
-
-
-Test your connection in the rails console by entering 
-
-ENV['consumer_key']
-You should get your unique value in response 
-
-Now we're going to create a model that will contain most of our code and methods 
-
-rails g model bot
-
-rake db:migrate 
-
-In the newly created bot file, we're going to add some methods that access data from Twitter's API in various ways 
-
-  def self.search_words words
-      CLIENT.search(words, lang: "en").first.text
-  end
-
-  Bot.search_words "entrepreneur"
-
-  This should return the most recent tweet using the word 
-
-Populate seeds file 
-
-First create a model to hold all of the messages that you will be sending 
-rails g model Response message:string tweet_id:string 
-
-go to db/seeds.rb 
-
-Response.create(message: "Seed tweets") 
-etc. etc. etc. 
-
-Create a user model 
-rails g model User name:string tweet_id:string
-
-rake db:migrate
-rake db:seed 
-
-Create a method to respond to tweets 
-  def self.respond name
-    "@" + name + " " + Response.order_by_rand.first.message
-  end 
-
-    def self.find_user number, words
-
-    # find tweets
-    CLIENT.search(words, lang: "en").take(number).each { |t|
-      # record twitter user and tweet num.
-      
-      User.create(name: t.user.screen_name, tweet_id: t.id.to_s)
-
-      # send message
-      CLIENT.update(Bot.respond(t.user.screen_name), in_reply_to_status_id: t.id)
-    }
-
-  end
-
-  After these methods are in, should be able to run 
+ 
+consumer_key: "Your access code here" consumer_secret: "Your access
+code here" access_token: "Your access code here" access_secret: "Your
+access code here" Now our app has access to those keys, but we need to
+ensure they're initialized and called in the correct format. To do so,
+create a new file in config/initializers named twitter.rb and add the
+following code that will enable us to begin interacting with Twitter!
 
 
+CLIENT = Twitter::REST::Client.new do |config|   config.consumer_key
+= ENV['consumer_key']   config.consumer_secret     =
+ENV['consumer_secret']   config.access_token        =
+ENV['access_token']   config.access_token_secret =
+ENV['access_secret'] end
+ 
+
+This instantiation connects us to Twitter with the keys that we've
+secretly hidden in application.yml
+
+Before we do anything more complicated, it would be wise to test the
+connection to Twitter, which we can do by running
+
+ENV['consumer_key'] in the terminal. It should respond with your
+unique consumer_key, matching the value at apps.twitter.com. If it
+doesn't stop and debug here before moving forward.
+
+4. The Bot Model
+ 
+Now we're going to create a model that will handle most of the code
+for our application.
+
+rails g model bot Don't forget to:
+
+rake db:migrate In the newly created Bot model (found in
+app/models/bot.rb), we can build our first method that will access
+Twitter! It will search through recent tweets, looking for whatever
+words we pass through it.
 
 
+def self.search_words words     CLIENT.search(words, lang:
+"en").first.text end  For example, in the Rails Console we can now run
+"Bot.search_words "#insomnia" and our machine should return the text
+of the most recent tweet containing that tag.
+
+Screen Shot 2015-03-02 at 3.11.10 PM
+
+ 
+
+Now that we've mastered retrieving data, let's switch focus to sending
+Tweets.
+
+5. Set up your seeded responses
+ 
+We're going to use a populated database to automatically respond using
+Rails Seeds file. First create a model to hold all of your responses,
+using
+
+
+rails g model Response message: string and don't forget to rake
+db:migrate. Then in db/seeds.rb, we can add some Tweets. We're going
+to randomly loop through these later on, so order doesn't really
+matter, but make sure all of your messages are less than 140
+characters. I'm going to set up my seeds to share a recent New York
+Time article highlighting mindfulness meditation's effect on sleep and
+recommend some of my favorite meditation apps.
+
+Screen Shot 2015-03-02 at 3.41.25 PM
+
+Once you've populated your seeds file, run rake db:seed
+
+Finally, we're going to create a database to store our Users. This
+will enable us to store all of their information if we want to engage
+with them later on, but it actually won't be vital for the purposes of
+this initial application.
+
+
+rails g model User name:string tweet_id:string and, of course...rake
+db:migrate.
+
+Our application's databases and configuration is completely set. Now
+it's just time to add some methods to our Bot Model so we can begin
+wreaking havoc on the internet!
+
+6. Search and Respond
+ 
+First, we'll set up a respond method build a response to a particular
+user. In bot.rb,
+
+
+def self.respond name "@" + name + " " +
+Response.order_by_rand.first.message end This method alone actually
+isn't much use, but when we call it inside another method it will
+respond with "@username [the tweet from seeds will go here]".
+
+Second, we need a method that will search through tweets and save a
+certain number of them, create and save a user for each tweet, and
+finally Tweet out a response in respond to the saved response. Sound
+complicated? Well, yea, it is, but maybe the commented out sudo code
+will help you understand it:
+
+Screen Shot 2015-03-02 at 3.30.06 PM
+
+Now we can head over to the Rails Console and call our newly created
+method by running "Bot.find_user 3, "#insomnia" and our Twitter
+account should reply to the three most recent tweets with that
+hashtag.
+
+Screen Shot 2015-03-02 at 3.33.13 PM
+
+The machine's response indicated that we've inserted three new users
+into our user database. We've also sent off three replies to users.
+Don't believe me? Check it out: you can see that my seeds file
+randomly populated with three different responses:
+
+
+Although I'm just messing around and creating a basic Robot responder,
+this opens up a whole world of interesting possibilities. One could
+use an automated responder to A/B test click-through rates on
+promotional content or evaluate conversion rates on various landing
+pages. More broadly, with a basic understanding of Twitter's API
+configuration, one can automate key functions, develop an entire
+social media campaign, or even build and access custom analytics
+reports.
 
 
 

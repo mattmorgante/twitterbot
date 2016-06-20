@@ -2,9 +2,9 @@
 
 This is a command-line interface twitter bot that can search and respond to tweets from the Twitter API. 
 
-### h3 Features 
+### Features 
 * Return the most recent tweets containing certain string values or hashtag: `Bot.search_words "#hashtag"`
-* Send tweets by adding pre-populated tweets to the database, then running: `Bot.find_user n, "#hashtag"`, where is n is the number of tweets you want to respond to 
+* Send tweets by adding pre-populated tweets to the database, then running: `Bot.find_user n, "#hashtag"`, where n is the number of tweets you want to respond to 
 
 
 ### Tutorial

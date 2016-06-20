@@ -1,4 +1,5 @@
 # Twitter Bot
+
 This is a command-line interface twitter bot that can search and respond to tweets from the Twitter API. 
 
 ### h3 Features 
@@ -8,4 +9,3 @@ This is a command-line interface twitter bot that can search and respond to twee
 
 ### Tutorial
 For a tutorial on how to make your own twitter bot, head over to http://www.mattmorgante.com/technology/505 
-
